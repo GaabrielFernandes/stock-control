@@ -1,12 +1,8 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Password } from 'primeng/password';
 import { UserService } from '../../Services/user/user.service';
-import { SignupUserResponse } from '../../models/interfaces/User/SignupUserResponse';
-import { SignupUserRequest } from '../../models/interfaces/User/SignupUserRequest';
 import { CookieService } from 'ngx-cookie-service';
 import { MessageService } from 'primeng/api';
-import { ThisReceiver } from '@angular/compiler';
 import { Router } from '@angular/router';
 
 @Component({
