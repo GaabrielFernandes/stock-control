@@ -1,23 +1,29 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UserService } from '../../Services/user/user.service';
 import { CookieService } from 'ngx-cookie-service';
 import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent {
+export class HomeComponent implements OnDestroy {
+  private destroy$ =  new Subject<void>()
   loginCard  = true
   loginForm:FormGroup
   signupForm:FormGroup
 
   onSubmitLoginForm():void{
     if(this.loginForm.value &&  this.loginForm.valid){
-      this.userService.authUser(this.loginForm.value).subscribe({
+      this.userService.authUser(this.loginForm.value)
+      .pipe(
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
         next:(response) =>{
           if(response){
             this.cookieService.set('USER_INFO',response?.token)
@@ -48,7 +54,9 @@ export class HomeComponent {
 
   onSubmitSignupForm():void{
    if(this.signupForm.value   &&  this.signupForm.valid){
-    this.userService.signupUser(this.signupForm.value).subscribe({
+    this.userService.signupUser(this.signupForm.value)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
       next:(response)  =>{
         if(response)
         this.signupForm.reset
@@ -92,5 +100,9 @@ export class HomeComponent {
       email:['',Validators.required],
       password:['',Validators.required]
     })
+  }
+  ngOnDestroy(): void {
+    this.destroy$.next()
+    this.destroy$.complete
   }
 }
