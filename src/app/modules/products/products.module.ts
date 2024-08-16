@@ -11,7 +11,7 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
+import { DialogService, DynamicDialogConfig, DynamicDialogModule, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TooltipModule } from 'primeng/tooltip';
@@ -20,13 +20,16 @@ import { ProductsHomeComponent } from './page/products-home/products-home.compon
 import { RouterModule } from '@angular/router';
 import { PRODUCTS_ROUTES } from './products.route';
 import { ProductsTableComponent } from './components/products-table/products-table.component';
+import { ProductFormComponent } from './components/product-form/product-form.component';
+import { DialogModule } from 'primeng/dialog';
 
 
 
 @NgModule({
   declarations: [
     ProductsHomeComponent,
-    ProductsTableComponent
+    ProductsTableComponent,
+    ProductFormComponent
   ],
   imports: [
     CommonModule,
@@ -47,11 +50,14 @@ import { ProductsTableComponent } from './components/products-table/products-tab
     DynamicDialogModule,
     DropdownModule,
     ConfirmDialogModule,
-    TooltipModule
+    TooltipModule,
+    DialogModule
   ],
   providers:[
     DialogService,
-    ConfirmationService
+    ConfirmationService,
+    DynamicDialogRef,
+    DynamicDialogConfig
   ]
 })
 export class ProductsModule { }
