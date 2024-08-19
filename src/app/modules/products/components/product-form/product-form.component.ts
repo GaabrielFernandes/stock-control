@@ -1,3 +1,4 @@
+import { DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { CreateProductRequest } from './../../../../models/interfaces/products/request/CreateProductRequest';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
@@ -7,6 +8,11 @@ import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { GetCategoriesResponse } from '../../../../models/interfaces/categories/responses/GetCategoriesResponse';
 import { ProductsService } from '../../../../Services/products/products.service';
+import { EventAction } from '../../../../models/interfaces/products/event/EventAction';
+import { GetAllProductsResponse } from '../../../../models/interfaces/products/response/GetAllProductsResponse';
+import { ProductsDataTransferService } from '../../../../sherad/services/products/products-data-transfer.service';
+import { response } from 'express';
+import { ThisReceiver } from '@angular/compiler';
 
 @Component({
   selector: 'app-product-form',
@@ -15,16 +21,25 @@ import { ProductsService } from '../../../../Services/products/products.service'
 export class ProductFormComponent implements OnInit,  OnDestroy {
   private readonly destroy$:Subject<void> =  new Subject()
   public categoriesDatas:Array<GetCategoriesResponse> = []
-  public  selectedCategory:Array<{name:string; code:string}>  = []
+  public productsDatas:Array<GetAllProductsResponse> =  []
+  public selectedCategory:Array<{name:string; code:string}>  = []
+  public productSelectedDatas!:GetAllProductsResponse
+  public  productAction!:{
+    event: EventAction
+    productDatas:Array<GetAllProductsResponse>
+  }
   addProductForm:FormGroup
+  editProductForm:FormGroup
 
 
   constructor(
     private categoriesService:CategoriesService,
     private formBuilder:FormBuilder,
     private productsService:ProductsService,
+    private productDtService:ProductsDataTransferService,
     private messageService:  MessageService,
-    private router:Router
+    private router:Router,
+    public ref: DynamicDialogConfig
   ){
     this.addProductForm = this.formBuilder.group({
       name:['',Validators.required],
@@ -32,6 +47,13 @@ export class ProductFormComponent implements OnInit,  OnDestroy {
       description:['',Validators.required],
       category_id:['',Validators.required],
       amount:[0, Validators.required]
+    })
+    this.editProductForm = this.formBuilder.group({
+      name:['',Validators.required],
+      price:['',Validators.required],
+      description:['',Validators.required],
+      category_id:['',Validators.required],
+      amount:[0,Validators.required]
     })
   }
 
@@ -71,7 +93,45 @@ export class ProductFormComponent implements OnInit,  OnDestroy {
 
   }
 
+  handleSubmitEditProduct():void{
+    // if(this.editProductForm.value  &&  this.editProduct.valid){
+    // }
+  }
+
+  getProductSelectedDatas(productId:string):void{
+    const allProducts = this.productAction?.productDatas
+
+
+    if(allProducts.length > 0){
+      const productFiltered = allProducts.filter((element)=>element?.id === productId)
+      if(productFiltered){
+        this.productSelectedDatas = productFiltered[0]
+
+        this.editProductForm.setValue({
+          name:this.productSelectedDatas?.name,
+          price:this.productSelectedDatas?.price,
+          amount:this.productSelectedDatas?.amount,
+          description:this.productSelectedDatas?.description,
+        })
+      }
+    }
+  }
+
+  getProductDatas():void{
+    this.productsService.getAllProducts()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next:(response)=>{
+        if(response.length > 0){
+          this.productsDatas =  response
+          this.productsDatas && this.productDtService.setProductsDatas(this.productsDatas)
+        }
+      }
+    })
+  }
+
   ngOnInit(): void {
+    this.productAction = this.ref.data
     this.getAllCategories()
   }
   getAllCategories() {
