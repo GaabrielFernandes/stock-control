@@ -63,6 +63,8 @@ export class ProductsHomeComponent implements OnDestroy,  OnInit {
   }
 
   handleProductAction(event: EventAction):void{
+    console.log(event);
+    console.log(this.productsDatas)
     if(event){
       this.ref  = this.dialogService.open(ProductFormComponent,{
         header:event.action,
@@ -72,7 +74,8 @@ export class ProductsHomeComponent implements OnDestroy,  OnInit {
         maximizable:true,
         data:{
           event:event,
-          productsDatas:  this.productsDatas
+          productsDatas:  this.productsDatas,
+          product: this.productsDatas.find(prod  =>  prod.id  == event.id)
         }
       })
       this.ref.onClose

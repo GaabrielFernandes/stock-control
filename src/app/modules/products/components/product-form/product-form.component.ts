@@ -13,6 +13,8 @@ import { GetAllProductsResponse } from '../../../../models/interfaces/products/r
 import { ProductsDataTransferService } from '../../../../sherad/services/products/products-data-transfer.service';
 import { response } from 'express';
 import { ThisReceiver } from '@angular/compiler';
+import { ProductEvent } from '../../../../models/enums/products/ProductEvent';
+import { EditProductRequest } from '../../../../models/interfaces/products/response/EditProductRequest';
 
 @Component({
   selector: 'app-product-form',
@@ -24,9 +26,14 @@ export class ProductFormComponent implements OnInit,  OnDestroy {
   public productsDatas:Array<GetAllProductsResponse> =  []
   public selectedCategory:Array<{name:string; code:string}>  = []
   public productSelectedDatas!:GetAllProductsResponse
+  public rederDropdown = false
+  public addProductAction = ProductEvent.ADD_PRODUCT_EVENT
+  public editProductAction = ProductEvent.EDIT_PRODUCT_EVENT
+  public saleProductAction = ProductEvent.SALE_PRODUCT_EVENT
   public  productAction!:{
     event: EventAction
-    productDatas:Array<GetAllProductsResponse>
+    productDatas:Array<GetAllProductsResponse>,
+    product: any
   }
   addProductForm:FormGroup
   editProductForm:FormGroup
@@ -94,8 +101,44 @@ export class ProductFormComponent implements OnInit,  OnDestroy {
   }
 
   handleSubmitEditProduct():void{
-    // if(this.editProductForm.value  &&  this.editProduct.valid){
-    // }
+    console.log('chegou para  editar')
+    if(this.editProductForm.value  &&
+      this.editProductForm.valid   &&
+      this.productAction.event.id
+    ){
+      const  requestEditProduct:EditProductRequest  = {
+        name:this.editProductForm.value.name as  string,
+        price:this.editProductForm.value.price as  string,
+        description:this.editProductForm.value.description as string,
+        product_id:this.productAction.event.id,
+        amount:this.editProductForm.value.amount as number,
+        category_id:this.editProductForm.value.category_id as  string
+      }
+
+      this.productsService
+      .editProduct(requestEditProduct)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next:() =>{
+          this.messageService.add({
+            severity:'success',
+            summary:'Sucesso',
+            detail:'Produto editado com sucesso',
+            life:2500
+          })
+          this.editProductForm.reset()
+        },error:(err) =>{
+          console.log(err)
+          this.messageService.add({
+            severity:'error',
+            summary:'ERRO',
+            detail:'Erro ao editar  produto',
+            life:2500
+          })
+          this.editProductForm.reset()
+        }
+      })
+    }
   }
 
   getProductSelectedDatas(productId:string):void{
@@ -112,6 +155,7 @@ export class ProductFormComponent implements OnInit,  OnDestroy {
           price:this.productSelectedDatas?.price,
           amount:this.productSelectedDatas?.amount,
           description:this.productSelectedDatas?.description,
+          category_id:this.productSelectedDatas.category.id
         })
       }
     }
@@ -131,9 +175,30 @@ export class ProductFormComponent implements OnInit,  OnDestroy {
   }
 
   ngOnInit(): void {
+    console.log('esta editando')
     this.productAction = this.ref.data
+
+    this.productAction.event.action === this.saleProductAction &&
+    this.getProductDatas
+
     this.getAllCategories()
+    this.rederDropdown  =  true
+
+    console.log(this.productAction)
+    if(this.productAction.product){
+      console.log('esta editando')
+      this.editProductForm.setValue({
+        name:this.productAction.product.name,
+        price:this.productAction.product.price,
+        amount:this.productAction.product.amount,
+        description:this.productAction.product.description,
+        category_id: this.productAction.product
+      })
+    }
+
   }
+
+
   getAllCategories() {
     this.categoriesService.getAllCategories()
     .pipe(takeUntil(this.destroy$))
@@ -141,6 +206,9 @@ export class ProductFormComponent implements OnInit,  OnDestroy {
       next:(response)=>{
         if (response.length >  0) {
           this.categoriesDatas = response
+          if(this.productAction.event.action === this.editProductAction && this.productAction.productDatas){
+            this.getProductSelectedDatas(this.productAction.event.id as string)
+          }
         }
       }
     })

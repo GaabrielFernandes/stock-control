@@ -33,4 +33,23 @@ export class CategoriesService {
        this.httpOptions
     )
   }
+
+  deleteCategory(requestDatas:{category_id:string}):Observable<void>{
+    return this.http.delete<void>(
+      `${this.API_URL}/category/delete`,{
+      ...this.httpOptions, params:{
+        category_id:requestDatas.category_id
+        }
+      }
+    )
+  }
+
+
+  createNewCategory(requestDatas:{name:string}){
+    return this.http.post<Array<GetCategoriesResponse>>(
+    `${this.API_URL}/category`,
+    requestDatas,
+    this.httpOptions
+    )
+  }
 }
