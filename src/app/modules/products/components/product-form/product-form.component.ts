@@ -15,12 +15,14 @@ import { response } from 'express';
 import { ThisReceiver } from '@angular/compiler';
 import { ProductEvent } from '../../../../models/enums/products/ProductEvent';
 import { EditProductRequest } from '../../../../models/interfaces/products/response/EditProductRequest';
+import { SaleProductsRequest } from '../../../../models/interfaces/products/request/SaleProductsRequest';
 
 @Component({
   selector: 'app-product-form',
   templateUrl: './product-form.component.html',
 })
 export class ProductFormComponent implements OnInit,  OnDestroy {
+
   private readonly destroy$:Subject<void> =  new Subject()
   public categoriesDatas:Array<GetCategoriesResponse> = []
   public productsDatas:Array<GetAllProductsResponse> =  []
@@ -35,8 +37,10 @@ export class ProductFormComponent implements OnInit,  OnDestroy {
     productDatas:Array<GetAllProductsResponse>,
     product: any
   }
-  addProductForm:FormGroup
-  editProductForm:FormGroup
+  public addProductForm:FormGroup
+  public editProductForm:FormGroup
+  public saleProductForm:FormGroup
+  public saleProductSelected!:GetAllProductsResponse;
 
 
   constructor(
@@ -61,6 +65,10 @@ export class ProductFormComponent implements OnInit,  OnDestroy {
       description:['',Validators.required],
       category_id:['',Validators.required],
       amount:[0,Validators.required]
+    })
+    this.saleProductForm = this.formBuilder.group({
+      amount:[0,Validators.required],
+      product_id:['',Validators.required]
     })
   }
 
@@ -174,12 +182,49 @@ export class ProductFormComponent implements OnInit,  OnDestroy {
     })
   }
 
+  handleSubmitSaleProduct() {
+    console.log('Chamou')
+      if (this.saleProductForm.value && this.saleProductForm.valid){
+        const requestDatas:SaleProductsRequest  = {
+          amount:this.saleProductForm.value.amount as number,
+          product_id:this.saleProductForm.value.product_id as string
+        }
+
+        this.productsService.saleProduct(requestDatas)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next:(response)=>{
+            if (response) {
+              this.saleProductForm.reset()
+              this.getProductDatas()
+              this.messageService.add({
+                severity:'success',
+                summary:'Sucesso',
+                detail:'Venda efetuada com  sucesso',
+                life:2500
+              })
+              this.router.navigate(['/dashboard'])
+            }
+          },error:(err) => {
+            console.log(err)
+            this.saleProductForm.reset()
+            this.messageService.add({
+              severity:'error',
+              summary:'ERRO',
+              detail:'Erro ao vender',
+              life:2500
+            })
+          },
+        })
+      }
+  }
+
   ngOnInit(): void {
     console.log('esta editando')
     this.productAction = this.ref.data
 
     this.productAction.event.action === this.saleProductAction &&
-    this.getProductDatas
+    this.getProductDatas()
 
     this.getAllCategories()
     this.rederDropdown  =  true

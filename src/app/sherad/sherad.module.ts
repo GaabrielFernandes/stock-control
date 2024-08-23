@@ -7,12 +7,14 @@ import { CardModule } from 'primeng/card';
 import { DialogService } from 'primeng/dynamicdialog';
 import { ToolbarNavgationComponent } from './components/toolbar-navgation/toolbar-navgation.component';
 import { ButtonModule } from 'primeng/button';
+import { ShortesPipe } from './pipes/shortes/shortes.pipe';
 
 
 
 @NgModule({
   declarations: [
-    ToolbarNavgationComponent
+    ToolbarNavgationComponent,
+    ShortesPipe
   ],
   imports: [
     CommonModule,
@@ -25,7 +27,7 @@ import { ButtonModule } from 'primeng/button';
     ToolbarModule,
     ButtonModule
   ],
-  exports:[ToolbarNavgationComponent],
+  exports:[ToolbarNavgationComponent, ShortesPipe],
   providers:[DialogService, CurrencyPipe]
 })
 export class SheradModule { }

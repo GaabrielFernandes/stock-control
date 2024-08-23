@@ -34,7 +34,14 @@ export class CategoriesFormComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.categoryAction = this.ref.data
 
+    if (
+      this.categoryAction.event.action  === this.editCategoryAction &&
+      this.categoryAction.event.category_name !== null || undefined
+    ) {
+      this.setCategoryName(this.categoryAction.event.category_name as string)
+    }
   }
 
   handleSubmitAddCategory():void{
@@ -67,6 +74,59 @@ export class CategoriesFormComponent implements OnInit, OnDestroy {
             life:3000
           })
         }
+      })
+    }
+  }
+
+  handleSubmitCategoryAction():void{
+    console.log('Esta chamando')
+   if (this.categoryAction.event.action === this.addCategoryAction) {
+    this.handleSubmitAddCategory()
+   }else if(this.categoryAction.event.action === this.editCategoryAction){
+    this.handleSubmitEditCategory()
+   }
+  }
+
+  handleSubmitEditCategory():void{
+    if(
+      this.categoryForm.value &&
+      this.categoryForm.valid &&
+      this.categoryAction.event.id
+    ){
+      const requestEditCategory:{name:string; category_id:string} = {
+        name:this.categoryForm.value.name as string,
+        category_id:this.categoryAction.event.id
+      }
+      this.categoriesService
+      .editCategoryName(requestEditCategory)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next:()=>{
+          this.categoryForm.reset()
+          this.messageService.add({
+            severity:'success',
+            summary:'Sucesso',
+            detail:'Categoria editada com sucesso',
+            life:3000
+          })
+        },error:(err) =>{
+          console.log(err)
+          this.categoryForm.reset()
+          this.messageService.add({
+            severity:'error',
+            summary:'ERRO',
+            detail:'Erro ao editar  categoria',
+            life:3000
+          })
+        }
+      })
+    }
+  }
+
+  setCategoryName(categoryName:string):void{
+    if(categoryName){
+      this.categoryForm.setValue({
+        name:categoryName
       })
     }
   }

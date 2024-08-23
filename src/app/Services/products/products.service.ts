@@ -8,6 +8,9 @@ import { GetAllProductsResponse } from '../../models/interfaces/products/respons
 import { DeleteProductResponse } from '../../models/interfaces/products/response/DeleteProductResponse';
 import { CreateProductRequest } from '../../models/interfaces/products/request/CreateProductRequest';
 import { EditProductRequest } from '../../models/interfaces/products/response/EditProductRequest';
+import { SaleProductsRequest } from '../../models/interfaces/products/request/SaleProductsRequest';
+import { SaleProductsResponse } from '../../models/interfaces/products/response/SaleProductsResponse';
+import { ThisReceiver } from '@angular/compiler';
 
 @Injectable({
   providedIn: 'root'
@@ -66,4 +69,18 @@ export class ProductsService {
     )
   }
 
+  saleProduct(requestDatas:SaleProductsRequest):Observable<SaleProductsResponse>{
+    return  this.http.put<SaleProductsResponse>(
+      `${this.API_URL}/product/sale`,
+      {
+        amount:requestDatas.amount
+      },
+      {
+        ...this.httpOptions,
+        params:{
+          product_id:requestDatas.product_id
+        }
+      }
+    )
+  }
 }
